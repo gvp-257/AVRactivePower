@@ -21,7 +21,8 @@
  * NOTE: Timer 0 is used extensively by the Arduino code
  * (e.g. `millis()`, `delay()`, `delayMicroseconds()`).
  *
- * So turn it back on after `StopAll()` if you need `delay()`, `millis()`, etc.
+ * So turn it back on after `Hardware.Allhw.powerOff()` if you need `delay()`,
+ * `millis()`, etc.
  *
  * The big power users are the ADC, the Serial interface, and SPI.
  *
