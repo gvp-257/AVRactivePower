@@ -1,0 +1,46 @@
+# Syntax Coloring Map For AVRactivePower
+
+# Datatypes (KEYWORD1)
+
+
+# Methods and Functions (KEYWORD2)
+
+# For modules other than SystemClock:
+
+isOn	KEYWORD2
+powerOff	KEYWORD2
+powerOn	KEYWORD2
+
+
+# For SystemClock only:
+
+divideBy	KEYWORD2
+divideBy8	KEYWORD2
+divideBy16	KEYWORD2
+fullSpeed	KEYWORD2
+
+
+# Instances (KEYWORD2)
+
+AVRchip
+
+ADChw	KEYWORD2
+AnalogComparatorhw	KEYWORD2
+
+Allhw	KEYWORD2
+
+Serialhw	KEYWORD2
+Serial1hw	KEYWORD2
+Serial2hw	KEYWORD2
+Serial3hw	KEYWORD2
+SPIhw	KEYWORD2
+SystemClock	KEYWORD2
+Timer0hw	KEYWORD2
+Timer1hw	KEYWORD2
+Timer2hw	KEYWORD2
+Timer3hw	KEYWORD2
+Timer4hw	KEYWORD2
+Timer5hw	KEYWORD2
+Wirehw	KEYWORD2
+
+# Constants (LITERAL1)

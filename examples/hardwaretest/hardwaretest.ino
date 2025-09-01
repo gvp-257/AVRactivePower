@@ -1,52 +1,68 @@
 #include <Arduino.h>
 
-#include "hardware.h" // Hardware object
+#include "AVRactivePower.h"  //AVRchip object
 
-#define  BAUD 9600
-#include "dtos.h"            // DebugSerial object, printReg and printVar macros
+// Macros to print variables and register contents.
+#define printVar(name)    \
+do {                      \
+  Serial.print(F(#name)); \
+  Serial.print(F(": "));  \
+  Serial.println(name);     \
+} while (0);
+
+
+#define printReg(name)    \
+do {                      \
+  Serial.print(F(#name)); \
+  Serial.print(F(": 0b"));\
+  Serial.println(name, BIN);\
+} while (0);
 
 void setup()
 {
-  DebugSerial.begin();
-  Hardware.Allhw.powerOff();
-  Hardware.Serialhw.powerOn();  // re-enable serial for debugging
-  DebugSerial.println("Re-enabled Serial for debugging.");
+  Serial.begin(9600);
+  AVRchip.Allhw.powerOff();
+  AVRchip.Timer0hw.powerOn();   // re-enable Timer0 for millis(), delay(), etc.
+  AVRchip.Serialhw.powerOn();   // re-enable serial for debugging
+  Serial.println(F("Re-enabled Timer 0 (PRR bit 5) and Serial (PRR bit 1) for debugging."));
   long thetime = micros();
   long themillis = millis();
-  DebugSerial.println("micros() and millis() and the power reduction register:-");
+  Serial.println(F("micros() and millis() and the power reduction register:-"));
   printVar(thetime);
   printVar(themillis);
   printReg(PRR);
-  bool allhwisOn = Hardware.Allhw.isOn();
+  bool allhwisOn = AVRchip.Allhw.isOn();
   printVar(allhwisOn);
-  // Hardware.Allhw.powerOn();
+  // AVRchip.Allhw.powerOn();
   // printReg(PRR);
-  // hardwarestate = Hardware.Allhw.isOn();
-  // DebugSerial.println(hardwarestate);
+  // hardwarestate = AVRchip.Allhw.isOn();
+  // Serial.println(hardwarestate);
+  AVRchip.Timer0hw.powerOff();   // re-enable Timer0 for millis(), delay(), etc.
+  Serial.println(F("Disabled Timer0 PRR bit 5."));
   thetime = micros();
   printVar(thetime);
   themillis = millis();
   printVar(themillis);
-  DebugSerial.println("Re-enabling Timer0 for millis() and delay().");
-  Hardware.Timer0hw.powerOn();
+  Serial.println(F("Re-enabling Timer0 for millis() and delay()."));
+  AVRchip.Timer0hw.powerOn();
   printReg(PRR);
-  DebugSerial.println("Re-enabling Analog Comparator.");
-  Hardware.AnalogComparatorhw.powerOn();
+  Serial.println("Re-enabling Analog Comparator.");
+  AVRchip.AnalogComparatorhw.powerOn();
   printReg(PRR);
-  DebugSerial.println("Re-enabling ADC.");
-  Hardware.ADChw.powerOn();
+  Serial.println("Re-enabling ADC.");
+  AVRchip.ADChw.powerOn();
   printReg(PRR);
-  DebugSerial.println("Re-enabling SPI.");
-  Hardware.SPIhw.powerOn();
+  Serial.println("Re-enabling SPI.");
+  AVRchip.SPIhw.powerOn();
   printReg(PRR);
-  DebugSerial.println("Re-enabling Wire.");
-  Hardware.Wirehw.powerOn();
+  Serial.println("Re-enabling Wire.");
+  AVRchip.Wirehw.powerOn();
   printReg(PRR);
-  DebugSerial.println("Re-enabling Timer2.");
-  Hardware.Timer2hw.powerOn();
+  Serial.println("Re-enabling Timer2.");
+  AVRchip.Timer2hw.powerOn();
   printReg(PRR);
-  DebugSerial.println("Re-enabling Timer1.");
-  Hardware.Timer1hw.powerOn();
+  Serial.println("Re-enabling Timer1.");
+  AVRchip.Timer1hw.powerOn();
   printReg(PRR);
   thetime = micros();
   themillis = millis();
