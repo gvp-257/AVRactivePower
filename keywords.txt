@@ -2,6 +2,8 @@
 
 # Datatypes (KEYWORD1)
 
+AVRchip
+
 
 # Methods and Functions (KEYWORD2)
 
@@ -21,8 +23,6 @@ fullSpeed	KEYWORD2
 
 
 # Instances (KEYWORD2)
-
-AVRchip
 
 ADChw	KEYWORD2
 AnalogComparatorhw	KEYWORD2

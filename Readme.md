@@ -1,10 +1,18 @@
-# AVRactivePower.h - Slow the System Clock and/or Power Off Internal Modules of the ATmega168P/328P, ATtiny44/84, ATtiny45/85, ATmega1284P, ATmega2560
+# AVRactivePower.h - Reduce Power Use While Active
 
-Reduce the active power consumption of AVR chips:
+Reduce the power consumption of selected AVR chips while they are active:-
 
 - reduce the system clock frequency in situations where you can't sleep the CPU, but are waiting around for a slow peripheral (a button or something.)
 
-- power off the ADC, the SPI hardware block, the two-wire interface (Wire), timers, the analog comparator, hardware serial(s).  Check if on, power off and on.
+- power off parts of the controller chip such as the ADC, the built-in USART (Serial) and SPI hardware modules, the two-wire interface (Wire), timers, and the analog comparator. And power them back on when needed.
+
+## COMPATIBILITY
+
+`AVRactivePower.h` works with the AVR ATmega168P/PA/328P, ATtiny44/84, ATtiny45/85, ATmega1284P, and ATmega2560 chips.
+
+Arduino boards that use the above AVR chips:  the Duemilanove, Uno, Nano, Pro Mini (both 5 volt and 3 volt versions), Mega 2560, and third-party boards based on the AVR chips listed above such as the Mighty 1284.
+
+This library is intended mainly for **breadboard Arduinos** based on these chips, as most Arduino and third-party boards include power-hungry features like "power on" LEDs, voltage regulators, and USB interfaces. (It is relatively easy to convert a Pro Mini to a breadboard Arduino by removing or isolating its power-on LED and its voltage regulator.)
 
 ## USE-CASE
 
@@ -31,12 +39,6 @@ Don't use those features after having used `AVRchip.SystemClock.divideBy()`. Use
 With this library you can power-off internal hardware modules in the chip while it is awake and processing (which should be a relatively small part of the time for battery powered projects).
 
 The ADC (analog-to-digital converter) hardware uses about 300 microamps, and the serial (USART) hardware and SPI hardware each use 50 to 80 microamps when powered on.  Timer1 (16-bit timer) may use significant power as well.
-
-## COMPATIBILITY
-
-Arduino boards using the above AVR chips:  the Duemilanove, Uno, Nano, Pro Mini (both 5 volt and 3 volt versions), Mega 2560, and third-party boards based on the AVR chips listed above.
-
-This library is intended mainly for breadboard Arduinos based on these chips, as most Arduino and third-party boards include power-hungry features like "power on" LEDs, voltage regulators, and USB interfaces.
 
 ## INSTALLATION
 
@@ -74,9 +76,36 @@ Each hardware module has functions `powerOn()`, `powerOff()`, and `isOn()`:-
 
         AVRchip.Wirehw.powerOff();
 
+The ATmega1284P and ATmega2560 have more than one serial hardware modules and extra timers.  The full set of modules for each chip is as follows:-
+
+|ATtiny44/84/45/85 |ATmega168P/328P   |ATmega1284P       |ATmega2560        |
+|------------------|------------------|------------------|------------------|
+|SystemClock       |SystemClock       |SystemClock       |SystemClock       |
+|AnalogComparatorhw|AnalogComparatorhw|AnalogComparatorhw|AnalogComparatorhw|
+|ADChw             |ADChw             |ADChw             |ADChw             |
+|Serialhw          |Serialhw          |Serialhw          |Serialhw          |
+|Timer0hw          |SPIhw             |Serial1hw         |Serial1hw         |
+|Timer1hw          |Timer0hw          |Serial2hw         |Serial2hw         |
+|                  |Timer1hw          |SPIhw             |Serial3hw         |
+|                  |Timer2hw          |Timer0hw          |SPIhw             |
+|                  |Wirehw            |Timer1hw          |Timer0hw          |
+|                  |                  |Timer2hw          |Timer1hw          |
+|                  |                  |Timer3hw          |Timer2hw          |
+|                  |                  |Wirehw            |Timer3hw          |
+|                  |                  |                  |Timer4hw          |
+|                  |                  |                  |Timer5hw          |
+|                  |                  |                  |Wirehw            |
+
+
+Each of these has `isOn()`, `powerOn()`, and `powerOff()` functions.
+
+For each chip, the `Allhw` pseudo-module controls all modules except the `SystemClock`. (Powering off the system clock is done via `sleep()` operations. The easy way is to use RocketScream's *LowPower* library or Peter Knight's *Narcoleptic* library.) 
+
+`Allhw.isOn()` returns false if *any* module is off.
+
 ### System Clock
 
-As above, be careful when changing the system clock frequency if you want to use any of `Serial`, `Wire`, `SPI`, or `millis()` / `micros()` / `delay()` / `delayMicroseconds()` / `tone()` / `analogWrite()` / `analogRead()`.
+As above, be careful when changing the system clock frequency if you want to use any of `Serial`, `Wire`, `SPI`, `millis()`, `micros()`, `delay()`, `delayMicroseconds()`, `tone()`, `analogWrite()`, or `analogRead()`.
 
 For `Serial`, `Wire`, and `SPI`, use the `end()` function before slowing the system clock and use the `begin()` function after resetting it to full speed.
 
@@ -87,15 +116,17 @@ For `Serial`, `Wire`, and `SPI`, use the `end()` function before slowing the sys
             .....
         }
         void loop() {
-           AVRchip.SystemClock.divideBy(16);   // divide 16 MHz -> 1 MHz
+           AVRchip.SystemClock.divideBy(16);   // divide 16 MHz -> 1 MHz.
            .....
            AVRchip.SystemClock.fullSpeed();    // safe to use micros(), etc.
         }
 
+The allowed values for `AVRchip.SystemClock.divideBy()` are 1, 2, 4, 8, 16, 32, 64, 128 and 256.  Consult the data sheet for the estimated operating current at each clock speed you get by using divideBy().
+
 There are two "convenience" functions for `AVRchip.SystemClock`:
 
-        AVRchip.SystemClock.divideBy8();
-        AVRchip.SystemClock.divideBy16();
+        AVRchip.SystemClock.divideBy8();    // for 8 MHz Pro Mini, to 1 MHz.
+        AVRchip.SystemClock.divideBy16();   // for 16 MHz Uno / Nano / Pro Mini
 
 `AVRchip.SystemClock.fullSpeed()` is the same as `AVRchip.SystemClock.divideBy(1)`.
 
@@ -110,7 +141,7 @@ Add to documentation.
 
 ### Unlikely
 
-Add control of brown-out detector and watchdog timer modules.
+Add control of the brown-out detector and watchdog timer modules.
 
 Extend to other AVR chips.
 

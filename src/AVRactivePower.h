@@ -12,6 +12,7 @@
  * 2025-07 Initial version for ATmega168P/328P.
  * 2025-09 Extend to ATtiny44/84/45/85, ATmega1284P and ATmega2560.
  *         Add system clock divide functionality.
+ * 2025-09 Implement RAII techniques.
  *
  *
  * ACTIVE MODE NOT SLEEP MODE
@@ -141,6 +142,16 @@
 #   error Unrecognised chip type.
 #endif
 
+// Interrupt guard. RAII.
+class AVRInterruptGuard
+{
+private:
+    uint8_t oldsreg;
+public:
+     AVRInterruptGuard() : oldsreg(SREG) {cli();}
+    ~AVRInterruptGuard()  {SREG = oldsreg;}
+};
+
 // IN-COMMON blocks / peripherals
 
 // CLKPR: clock prescale register. Slow the system clock.
@@ -163,31 +174,27 @@ struct _clockreg
             case 256: bits = 8; break;
             default:  return;
         }
-        cli();
+        AVRInterruptGuard g;    // save SREG and cli
         CLKPR = 1<<CLKPCE;   // clock prescale change enable
         CLKPR = bits;        // must set prescale within 4 clock cycles
-        sei();               // hence the noInterrupts - interrrupts guard.
-    }
+    }   /// scope end for g, call ~g.
     void divideBy8()
     {
-        cli();
+        AVRInterruptGuard g;
         CLKPR = 1<<CLKPCE;
         CLKPR = 0x03;
-        sei();
     }
     void divideBy16()
     {
-        cli();
+        AVRInterruptGuard g;
         CLKPR = 1<<CLKPCE;
         CLKPR = 0x04;
-        sei();
     }
     void fullSpeed()
     {
-        cli();
+        AVRInterruptGuard g;
         CLKPR = 1<<CLKPCE;
         CLKPR = 0;
-        sei();
     }
 };
 
